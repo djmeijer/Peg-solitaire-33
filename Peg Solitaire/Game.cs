@@ -1,44 +1,99 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
+﻿using MoreLinq;
+using SharpGraph.Core;
 
-namespace Peg_Solitair
+namespace Peg_Solitair;
+
+public class Game
 {
-  public class Game
+  private readonly int[][] _grid;
+  private readonly IReadOnlyCollection<(int value, int x, int y)> _indexedGrid;
+
+  public Game()
   {
-    public void Solve(bool debug)
+    _grid = new[]
     {
-      BitArray boardStart = Factory.GetDefaultBeginBoard();
-      BitArray boardWin = Factory.GetDefaultEndBoard();
+      new []{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+      new []{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+      new []{ -1, -1, -1, -1, 0, 1, 2, -1, -1, -1, -1 },
+      new []{ -1, -1, -1, -1, 3, 4, 5, -1, -1, -1, -1 },
+      new []{ -1, -1, 6, 7, 8, 9, 10, 11, 12, -1, -1 },
+      new []{ -1, -1, 13, 14, 15, 16, 17, 18, 19, -1, -1 },
+      new []{ -1, -1, 20, 21, 22, 23, 24, 25, 26, -1, -1 },
+      new []{ -1, -1, -1, -1, 27, 28, 29, -1, -1, -1, -1 },
+      new []{ -1, -1, -1, -1, 30, 31, 32, -1, -1, -1, -1 },
+      new []{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 },
+      new []{ -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1 }
+    };
+    _indexedGrid = _grid.SelectMany((row, y) => row.Select((value, x) => (value, x, y))).ToArray();
+  }
+  public IEnumerable<Move> GraphExpand(Graph<BoardNode, Move> graph, BoardNode node)
+  {
+    node.Visited = true;
+    var directions = Enum.GetValues(typeof(Direction)).Cast<Direction>().ToArray();
+    var emptySpots = node.GetEmptySpots();
 
-      var tree = new Tree(boardStart, boardWin);
-      tree.Grow(debug);
-
-      Console.WriteLine("Tree is exhaustively searched.");
-
-      if(tree.Root != null)
+    return emptySpots
+      .Cartesian( directions, (s, d) => TryStepFromDirection(node, s, d))
+      .Where(n =>
       {
-        Console.WriteLine($"There are/is {tree.Root.SolutionCount} possible way(s) to solve the problem.");
-        Console.WriteLine("A possible solution is as follows.");
-        PrintWinningPath(tree.Root);
-      }
-      else
-      {
-        Console.WriteLine("No solution found.");
-      }
-      Console.ReadKey();
+        if (n == null)
+        {
+          return false;
+        }
+
+        var rotate1 = n.CloneToClockWiseRotated(1);
+        var rotate2 = rotate1.CloneToClockWiseRotated(1);
+        var flipped = n.CloneToVerticalFlipped();
+        var flippedRotate1 = flipped.CloneToClockWiseRotated(1);
+        var flippedRotate2 = flippedRotate1.CloneToClockWiseRotated(1);
+
+        return !graph.Vertices.Contains(n) &&
+               !graph.Vertices.Contains(rotate1) &&
+               !graph.Vertices.Contains(rotate2) &&
+               !graph.Vertices.Contains(rotate2.CloneToClockWiseRotated(1)) &&
+               !graph.Vertices.Contains(flipped) &&
+               !graph.Vertices.Contains(flippedRotate1) &&
+               !graph.Vertices.Contains(flippedRotate2) &&
+               !graph.Vertices.Contains(flippedRotate2.CloneToClockWiseRotated(1));
+      })
+      .Select(n => new Move(node, n));
+  }
+
+  private BoardNode TryStepFromDirection(BoardNode currentBoard, int emptySpot, Direction direction)
+  {
+    // A situation like this: '_ x x' results in 'x _ _'. 
+    int back;
+    int jumper;
+    var index = _indexedGrid.Single(g => g.value == emptySpot);
+
+    switch (direction)
+    {
+      case Direction.Up:
+        back = _grid[index.y - 1][index.x];
+        jumper = _grid[index.y - 2][index.x];
+        break;
+      case Direction.Down:
+        back = _grid[index.y + 1][index.x];
+        jumper = _grid[index.y + 2][index.x];
+        break;
+      case Direction.Left:
+        back = _grid[index.y][index.x + 1];
+        jumper = _grid[index.y][index.x + 2];
+        break;
+      case Direction.Right:
+        back = _grid[index.y][index.x - 1];
+        jumper = _grid[index.y][index.x - 2];
+        break;
+      default:
+        throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
     }
 
-    private void PrintWinningPath(Node node)
+    if (back == -1 || jumper == -1)
     {
-      node.Board.Print();
-      if(node.IsWinningNode)
-      {
-        return;
-      }
-
-      Console.ReadKey();
-      PrintWinningPath(node.ChildNodes.FirstOrDefault(n => n.Parent == node));
+      return null;
     }
+    
+    var newBoard = currentBoard.Jump(emptySpot, back, jumper);
+    return newBoard;
   }
 }

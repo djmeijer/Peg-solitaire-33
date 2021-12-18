@@ -5,7 +5,11 @@
         <TargetFramework>net6.0</TargetFramework>
         <RootNamespace>Peg_Solitaire</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
+        <Nullable>disable</Nullable>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SharpGraph" Version="1.0.6" />
+    </ItemGroup>
 
 </Project>

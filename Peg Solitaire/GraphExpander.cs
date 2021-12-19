@@ -44,7 +44,7 @@ public class GraphExpander<TVertex, TEdge>
                     });
             });
 
-        Console.WriteLine($"Working with {nodeCandidates.Length} nodes. Vertices diff {graph.Vertices.Count - _previousVerticesCount}, total {graph.Vertices.Count}. Ignored {graph.Vertices.Count - nodeCandidates.Length} nodes.");
+        Console.WriteLine($"Working with {nodeCandidates.Length:N0} nodes. Vertices diff {graph.Vertices.Count - _previousVerticesCount:N0}, total {graph.Vertices.Count:N0}. Ignored {graph.Vertices.Count - nodeCandidates.Length:N0} nodes.");
         _previousVerticesCount = graph.Vertices.Count;
 
         await ExpandSinks(graph, expand).ConfigureAwait(false);

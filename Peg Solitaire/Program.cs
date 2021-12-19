@@ -49,6 +49,8 @@ public static class Program
     var numberOfSolutions = !graph.Vertices.Contains(end) ? 0 : graph.AllPaths(begin, end).Count;
     var depth = graphExpander.CurrentDepth;
     Console.WriteLine($"{DateTime.Now:h:mm:ss} - processed {graph.Vertices.Count.ToString("N0")} items, {numberOfSolutions} solution(s), depth is {depth}.");
+
+    // PrintWinningPath(graph, begin, end);
   }
 
   private static void PrintWinningPath(Graph<BoardNode, Move> graph, BoardNode currentNode, BoardNode endNode)
@@ -59,8 +61,10 @@ public static class Program
       return;
     }
 
-    Console.ReadKey();
-      
-    PrintWinningPath(graph, graph.AdjacentVertices(currentNode).FirstOrDefault(), endNode);
+    var next = graph.AdjacentVertices(currentNode).FirstOrDefault();
+    if (next != default)
+    {
+      PrintWinningPath(graph, next, endNode); 
+    }
   }
 }

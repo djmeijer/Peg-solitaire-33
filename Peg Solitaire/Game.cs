@@ -41,20 +41,42 @@ public class Game
           return false;
         }
 
+        // Consider rotations and reflections.
+        if (graph.Vertices.Contains(n))
+        {
+          return false;
+        }
         var rotate1 = n.CloneToClockWiseRotated(1);
+        if (graph.Vertices.Contains(rotate1))
+        {
+          return false;
+        }
         var rotate2 = rotate1.CloneToClockWiseRotated(1);
+        if (graph.Vertices.Contains(rotate2))
+        {
+          return false;
+        }
+        if (graph.Vertices.Contains(rotate2.CloneToClockWiseRotated(1)))
+        {
+          return false;
+        }
         var flipped = n.CloneToVerticalFlipped();
+        if (graph.Vertices.Contains(flipped))
+        {
+          return false;
+        }
         var flippedRotate1 = flipped.CloneToClockWiseRotated(1);
+        if (graph.Vertices.Contains(flippedRotate1))
+        {
+          return false;
+        }
         var flippedRotate2 = flippedRotate1.CloneToClockWiseRotated(1);
+        if (graph.Vertices.Contains(flippedRotate2))
+        {
+          return false;
+        }
 
-        return !graph.Vertices.Contains(n) &&
-               !graph.Vertices.Contains(rotate1) &&
-               !graph.Vertices.Contains(rotate2) &&
-               !graph.Vertices.Contains(rotate2.CloneToClockWiseRotated(1)) &&
-               !graph.Vertices.Contains(flipped) &&
-               !graph.Vertices.Contains(flippedRotate1) &&
-               !graph.Vertices.Contains(flippedRotate2) &&
-               !graph.Vertices.Contains(flippedRotate2.CloneToClockWiseRotated(1));
+        return !graph.Vertices.Contains(flippedRotate2.CloneToClockWiseRotated(1));
       })
       .Select(n => new Move(node, n));
   }
@@ -88,12 +110,20 @@ public class Game
         throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
     }
 
+    // Outside the field.
     if (back == -1 || jumper == -1)
+    {
+      return null;
+    }
+
+    // Not a valid move.
+    if (!currentBoard.GetValue(back) || !currentBoard.GetValue(jumper))
     {
       return null;
     }
     
     var newBoard = currentBoard.Jump(emptySpot, back, jumper);
+
     return newBoard;
   }
 }

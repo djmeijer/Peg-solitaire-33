@@ -3,13 +3,11 @@ using SharpGraph.Core;
 
 namespace Peg_Solitair;
 
-public class GraphExpander<TVertex, TEdge>
-    where TVertex : BoardNode
-    where TEdge : Line<TVertex>
+public class GraphExpander
 {
     private int _previousVerticesCount;
 
-    public async Task ExpandSinks(Graph<TVertex, TEdge> graph, Func<TVertex, IEnumerable<TEdge>> expand)
+    public void ExpandSinks(Graph<Board, Move> graph, HashSet<string> cache, Func<Board, IEnumerable<Move>> expand)
     {
         CurrentDepth++;
 
@@ -25,16 +23,16 @@ public class GraphExpander<TVertex, TEdge>
             {
                 var expandedNodes = b
                     .AsParallel()
-                    .WithDegreeOfParallelism(10)
                     .SelectMany(expand)
                     .ToArray();
 
                 expandedNodes
                     .ForEach(e =>
                     {
-                        if (!graph.Vertices.Contains(e.Point2))
+                        if (!graph.Vertices.Contains(e.Target))
                         {
-                            graph.AddVertex(e.Point2);
+                            cache.Add(e.TargetIdentifier);
+                            graph.AddVertex(e.Target);
                         }
 
                         if (!graph.Edges.Contains(e))
@@ -47,7 +45,7 @@ public class GraphExpander<TVertex, TEdge>
         Console.WriteLine($"Working with {nodeCandidates.Length:N0} nodes. Vertices diff {graph.Vertices.Count - _previousVerticesCount:N0}, total {graph.Vertices.Count:N0}. Ignored {graph.Vertices.Count - nodeCandidates.Length:N0} nodes.");
         _previousVerticesCount = graph.Vertices.Count;
 
-        await ExpandSinks(graph, expand).ConfigureAwait(false);
+        ExpandSinks(graph, cache, expand);
     }
 
     public int CurrentDepth { get; private set; }

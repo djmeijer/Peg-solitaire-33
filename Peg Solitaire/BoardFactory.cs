@@ -2,23 +2,23 @@
 
 namespace Peg_Solitair;
 
-public static class BoardNodeFactory
+public static class BoardFactory
 {
-  public static BoardNode GetDefaultBeginBoard()
+  public static Board GetStartBoard()
   {
     var board = GetBitArray(true);
     board[16] = false;
-    return new BoardNode(board);
+    return new Board(board);
   }
 
-  public static BoardNode GetDefaultEndBoard()
+  public static Board GetEndBoard()
   {
     var board = GetBitArray(false);
     board[16] = true;
-    return new BoardNode(board);
+    return new Board(board);
   }
 
-  public static BoardNode GetHatShape()
+  public static Board GetHatShape()
   {
     var board = GetBitArray(false);
     board[4] = true;
@@ -32,17 +32,17 @@ public static class BoardNodeFactory
     board[18] = true;
     board[22] = true;
     board[24] = true;
-    return new BoardNode(board);
+    return new Board(board);
   }
 
-  public static BoardNode GetTrivialBoard()
+  public static Board GetTrivialBoard()
   {
     var board = GetBitArray(false);
     board[4] = true;
     board[16] = true;
     board[28] = true;
     board[31] = true;
-    return new BoardNode(board);
+    return new Board(board);
   }
 
   private static BitArray GetBitArray(bool initialValue) => new(Enumerable.Repeat(initialValue, 33).ToArray());
